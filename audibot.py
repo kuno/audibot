@@ -19,7 +19,7 @@ SUBJECT = "Please help return these books"
 UPPER_LIMIT_TO_RETURN = 3
 
 
-def get_upper_limit_to_return():
+def get_number_to_return():
     try:
         return int(os.getenv("NUMBER_TO_RETURN"))
     except:
@@ -27,15 +27,19 @@ def get_upper_limit_to_return():
 
 
 def get_ready_to_return_library_items():
-    auth = audible.Authenticator.from_file('./audible.json')
+    auth = audible.Authenticator.from_file('./audible_auth.json')
     with audible.Client(auth=auth) as client:
-        ready_to_return = client.get(f"/1.0/collections/{COLLECTION_ID}/items")
         library = client.get("/1.0/library")
-        ready_to_return_items = [item for item in ready_to_return["items"]]
         library_items = [item for item in library["items"]]
-        ready_to_return_library_items = [
-            li for li in library_items for ri in ready_to_return_items if li['asin'] == ri['asin']]
-        return ready_to_return_library_items
+        ready_to_return = client.get(f"/1.0/collections/{COLLECTION_ID}/items")
+        ready_to_return_items = [item for item in ready_to_return["items"]]
+
+        return [
+            li
+            for li in library_items
+            for ri in ready_to_return_items
+            if li['asin'] == ri['asin']
+        ]
 
 
 def send_email(items):
@@ -59,9 +63,9 @@ def send_email(items):
 
 
 if __name__ == '__main__':
-    limit = get_upper_limit_to_return()
+    ntr = get_number_to_return()
     ready_to_return_library_items = get_ready_to_return_library_items()
-    items = ready_to_return_library_items[:limit]
+    items = ready_to_return_library_items[:ntr]
 
     #
     if len(items) > 0 and len(items) <= UPPER_LIMIT_TO_RETURN:
