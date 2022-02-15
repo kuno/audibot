@@ -4,7 +4,8 @@ import audible
 from simplegmail import Gmail
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-env = Environment(loader=PackageLoader("audibot"), autoescape=select_autoescape())
+env = Environment(loader=PackageLoader("audibot"),
+                  autoescape=select_autoescape())
 
 COUNTRY_CODE = "us"
 TO = "customersupport@audible.com"
@@ -66,8 +67,10 @@ def send_email(items, gmail_sender):
         "signature": True,  # use my account signature
     }
     pp.pprint(params)
-    message = gmail.send_message(**params)
-    pp.pprint(message)
+
+    if not os.getenv("DRY_RUN"):
+        message = gmail.send_message(**params)
+        pp.pprint(message)
 
 
 if __name__ == "__main__":
@@ -78,19 +81,23 @@ if __name__ == "__main__":
     if collection_name is not None and gmail_sender is not None:
         auth = audible.Authenticator.from_file("./audible_auth.json")
         collection_id = get_collection_id(auth, collection_name)
-        ready_to_return_library_items = get_ready_to_return_library_items(
-            auth, collection_id
-        )
-
-        number_to_return = get_number_to_return()
-
-        #
-        if UPPER_LIMIT_TO_RETURN >= number_to_return > 0:
-            send_email(ready_to_return_library_items[0:number_to_return], gmail_sender)
-
-        else:
-            pp.pprint(
-                f"number to return: {number_to_return} is not in the range of 1~{UPPER_LIMIT_TO_RETURN}"
+        if collection_id is not None:
+            ready_to_return_library_items = get_ready_to_return_library_items(
+                auth, collection_id
             )
+
+            number_to_return = get_number_to_return()
+            return_items = ready_to_return_library_items[0:number_to_return]
+
+            #
+            if 0 < number_to_return <= len(return_items):
+                send_email(return_items, gmail_sender)
+            else:
+                pp.pprint(
+                    f"invalid numbers: number to return {number_to_return}, items number {len(return_items)}"
+                )
+        else:
+            pp.pprint(f"failed to get collection_id for {collection_name}")
     else:
-        pp.pprint("Please set environment variables COLLECTION_NAME and GMAIL_SENDER")
+        pp.pprint(
+            "Please set environment variables COLLECTION_NAME and GMAIL_SENDER")
