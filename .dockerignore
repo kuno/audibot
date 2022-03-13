@@ -1,3 +1,8 @@
 .env
 .envrc
 .git
+
+#
+audible_auth.json
+client_secret.json
+gmail_token.json

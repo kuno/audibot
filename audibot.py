@@ -15,6 +15,13 @@ UPPER_LIMIT_TO_RETURN = 3
 pp = pprint.PrettyPrinter(indent=4)
 
 
+def get_credential_dir():
+    try:
+        return int(os.getenv("CRE"))
+    except:
+        return UPPER_LIMIT_TO_RETURN
+
+
 def get_number_to_return():
     try:
         return int(os.getenv("NUMBER_TO_RETURN"))
@@ -52,8 +59,11 @@ def get_ready_to_return_library_items(auth, collection_id):
         ]
 
 
-def send_email(items, gmail_sender):
-    gmail = Gmail()
+def send_email(client_secret_file, gmail_token_file, items, gmail_sender):
+    gmail = Gmail(
+        client_secret_file=client_secret_file,
+        creds_file=gmail_token_file
+    )
     html_template = env.get_template("mail.html")
     msg_html = html_template.render(items=items)
     text_template = env.get_template("mail.txt")
@@ -68,18 +78,27 @@ def send_email(items, gmail_sender):
     }
     pp.pprint(params)
 
-    if not os.getenv("DRY_RUN"):
+    if os.getenv("DRY_RUN") == "true":
         message = gmail.send_message(**params)
         pp.pprint(message)
+    else:
+        print("DRY RUN: not sending email")
 
 
 if __name__ == "__main__":
     #
+    gmail_token_file = os.getenv("GMAIL_TOKEN_FILE")
+    client_secret_file = os.getenv("GMAIL_CLIENT_SECRET_FILE")
+    audible_auth_file = os.getenv("AUDIBLE_AUTH_FILE")
+
     collection_name = os.getenv("COLLECTION_NAME")
     gmail_sender = os.getenv("GMAIL_SENDER")
 
     if collection_name is not None and gmail_sender is not None:
-        auth = audible.Authenticator.from_file("./audible_auth.json")
+        print("Collection name and gmail sender are set")
+        print(collection_name)
+        print(gmail_sender)
+        auth = audible.Authenticator.from_file(audible_auth_file)
         collection_id = get_collection_id(auth, collection_name)
         if collection_id is not None:
             ready_to_return_library_items = get_ready_to_return_library_items(
@@ -90,8 +109,12 @@ if __name__ == "__main__":
             return_items = ready_to_return_library_items[0:number_to_return]
 
             #
-            if 0 < number_to_return <= len(return_items):
-                send_email(return_items, gmail_sender)
+            if 0 < len(return_items) <= UPPER_LIMIT_TO_RETURN:
+                send_email(
+                    client_secret_file,
+                    gmail_token_file,
+                    return_items, gmail_sender
+                )
             else:
                 pp.pprint(
                     f"invalid numbers: number to return {number_to_return}, items number {len(return_items)}"
