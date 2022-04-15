@@ -78,7 +78,7 @@ def send_email(client_secret_file, gmail_token_file, items, gmail_sender):
     }
     pp.pprint(params)
 
-    if os.getenv("DRY_RUN") == "true":
+    if os.getenv("DRY_RUN") != "true":
         message = gmail.send_message(**params)
         pp.pprint(message)
     else:
