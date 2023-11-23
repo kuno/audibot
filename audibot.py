@@ -109,16 +109,11 @@ if __name__ == "__main__":
             return_items = ready_to_return_library_items[0:number_to_return]
 
             #
-            if 0 < len(return_items) <= UPPER_LIMIT_TO_RETURN:
-                send_email(
-                    client_secret_file,
-                    gmail_token_file,
-                    return_items, gmail_sender
-                )
-            else:
-                pp.pprint(
-                    f"invalid numbers: number to return {number_to_return}, items number {len(return_items)}"
-                )
+            send_email(
+                client_secret_file,
+                gmail_token_file,
+                return_items, gmail_sender
+            )
         else:
             pp.pprint(f"failed to get collection_id for {collection_name}")
     else:
