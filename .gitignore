@@ -154,3 +154,6 @@ cython_debug/
 audible_auth.json
 gmail_token.json
 client_secret.json
+
+.vscode
+client*.googleusercontent.com.json
