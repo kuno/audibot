@@ -1,4 +1,5 @@
 import os
+import random
 import pprint
 import audible
 from simplegmail import Gmail
@@ -106,7 +107,9 @@ if __name__ == "__main__":
             )
 
             number_to_return = get_number_to_return()
-            return_items = ready_to_return_library_items[0:number_to_return]
+            start = random.randint(0, len(ready_to_return_library_items) - number_to_return)
+            end = start + number_to_return
+            return_items = ready_to_return_library_items[start:end]
 
             #
             send_email(
