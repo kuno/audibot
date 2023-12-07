@@ -5,8 +5,7 @@ import audible
 from simplegmail import Gmail
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-env = Environment(loader=PackageLoader("audibot"),
-                  autoescape=select_autoescape())
+env = Environment(loader=PackageLoader("audibot"), autoescape=select_autoescape())
 
 COUNTRY_CODE = "us"
 TO = "customersupport@audible.com"
@@ -61,10 +60,7 @@ def get_ready_to_return_library_items(auth, collection_id):
 
 
 def send_email(client_secret_file, gmail_token_file, items, gmail_sender):
-    gmail = Gmail(
-        client_secret_file=client_secret_file,
-        creds_file=gmail_token_file
-    )
+    gmail = Gmail(client_secret_file=client_secret_file, creds_file=gmail_token_file)
     html_template = env.get_template("mail.html")
     msg_html = html_template.render(items=items)
     text_template = env.get_template("mail.txt")
@@ -106,19 +102,21 @@ if __name__ == "__main__":
                 auth, collection_id
             )
 
+            pp.pprint(
+                f"Total length of ready to return items {len(ready_to_return_library_items)}"
+            )
             number_to_return = get_number_to_return()
-            start = random.randint(0, len(ready_to_return_library_items) - number_to_return)
+            start = random.randint(
+                0, len(ready_to_return_library_items) - number_to_return
+            )
             end = start + number_to_return
+            pp.pprint(f"start of return items {start}")
+            pp.pprint(f"end of return items {end}")
             return_items = ready_to_return_library_items[start:end]
 
             #
-            send_email(
-                client_secret_file,
-                gmail_token_file,
-                return_items, gmail_sender
-            )
+            send_email(client_secret_file, gmail_token_file, return_items, gmail_sender)
         else:
             pp.pprint(f"failed to get collection_id for {collection_name}")
     else:
-        pp.pprint(
-            "Please set environment variables COLLECTION_NAME and GMAIL_SENDER")
+        pp.pprint("Please set environment variables COLLECTION_NAME and GMAIL_SENDER")
