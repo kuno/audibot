@@ -106,9 +106,13 @@ if __name__ == "__main__":
                 f"Total length of ready to return items {len(ready_to_return_library_items)}"
             )
             number_to_return = get_number_to_return()
-            start = random.randint(
-                0, len(ready_to_return_library_items) - number_to_return
+            len_ready_to_return_library_items = len(ready_to_return_library_items)
+            limit = (
+                len_ready_to_return_library_items - number_to_return
+                if len_ready_to_return_library_items > number_to_return
+                else number_to_return
             )
+            start = random.randint(0, limit)
             end = start + number_to_return
             pp.pprint(f"start of return items {start}")
             pp.pprint(f"end of return items {end}")
